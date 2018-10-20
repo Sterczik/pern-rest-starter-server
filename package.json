@@ -1,0 +1,9 @@
+{
+  "name": "pern-rest-starter-server",
+  "version": "0.0.1",
+  "description": "Postgre-Express-React-Node REST Starter Server",
+  "main": "src/index.js",
+  "repository": "git@github.com:Sterczik/pern-rest-starter-server.git",
+  "author": "sterczik <sterczewskik@gmail.com>",
+  "license": "MIT"
+}
