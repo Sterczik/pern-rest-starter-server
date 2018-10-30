@@ -1,16 +1,14 @@
+import * as dotenv from "dotenv";
+dotenv.config();
 import "reflect-metadata";
-require('dotenv').config();
-
 import { createConnection } from "typeorm";
-import { User } from "./api/entity/User";
+import app from './config/express';
+import { env, port } from './config/variables';
 
 createConnection()
-  .then(async connection => {
-    const user = new User();
-    user.firstName = "Kamil";
-    user.lastName = "Sterczik";
-    user.age = 22;
-    await connection.manager.save(user);
-    console.log('Works!')
+  .then(async () => {
+    console.log('Database connected!');
   })
   .catch(err => console.log(err));
+
+app.listen(port, () => console.info(`Server started: Port ${port}, Env ${env}`));
