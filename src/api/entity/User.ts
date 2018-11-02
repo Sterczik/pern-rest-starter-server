@@ -1,20 +1,61 @@
-import { Entity, PrimaryColumn, Column, BeforeInsert, BaseEntity } from "typeorm";
-import * as uuidv4 from "uuid/v4";
+import * as bcrypt from "bcryptjs";
+import { Length } from 'class-validator';
+import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, BaseEntity, CreateDateColumn, UpdateDateColumn } from "typeorm";
+
+export enum Roles {
+    user,
+    admin
+}
 
 @Entity("users")
 export class User extends BaseEntity {
 
-    @PrimaryColumn("uuid")
-    id: string;
+    @PrimaryGeneratedColumn()
+    id: number;
 
-    @Column("varchar", { length: 255 })
+    @Column({
+        type: "varchar",
+        length: 255,
+        unique: true
+    })
     email: string;
 
-    @Column("text")
+    @Column({
+        type: "varchar"
+    })
+    @Length(6, 20)
     password: string;
 
+    @Column({
+        type: "varchar"
+    })
+    @Length(3, 50)
+    name: string;
+
+    @Column({
+        default: Roles.user
+    })
+    role: Roles;
+
+    @Column({
+        type: "text"
+    })
+    picture: string;
+
+    @Column({
+        type: "integer",
+        default: 1
+    })
+    service: number;
+
+    @CreateDateColumn()
+    createdAt: string;
+
+    @UpdateDateColumn()
+    updatedAt: string;
+
     @BeforeInsert()
-    addId() {
-        this.id = uuidv4();
+    async hashPasswordBeforeInsert() {
+        this.password = await bcrypt.hash(this.password, 10);
     }
 }

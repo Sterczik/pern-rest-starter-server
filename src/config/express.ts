@@ -5,6 +5,7 @@ import * as methodOverride from 'method-override';
 import * as cors from 'cors';
 import * as helmet from 'helmet';
 import * as passport from 'passport';
+import routes from '../api/routes';
 
 const app = express();
 
@@ -20,5 +21,7 @@ app.use(helmet());
 app.use(cors());
 
 app.use(passport.initialize());
+
+app.use('/api', routes);
 
 export default app;
