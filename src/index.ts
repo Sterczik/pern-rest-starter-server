@@ -11,4 +11,4 @@ createConnection()
   })
   .catch(err => console.log(err));
 
-app.listen(port, () => console.info(`Server started: Port ${port}, Env ${env}`));
+app.listen(port, () => console.info(`Server started: Port ${port}, Env ${env} 🍺`));

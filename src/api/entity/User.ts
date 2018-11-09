@@ -1,6 +1,9 @@
 import * as bcrypt from "bcryptjs";
 import { Length } from 'class-validator';
 import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, BaseEntity, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { compareSync } from 'bcryptjs';
+import * as jwt from 'jsonwebtoken';
+import { jwtSecret } from '../../config/variables';
 
 export enum Roles {
     user,
@@ -23,13 +26,13 @@ export class User extends BaseEntity {
     @Column({
         type: "varchar"
     })
-    @Length(6, 20)
+    @Length(6, 30)
     password: string;
 
     @Column({
         type: "varchar"
     })
-    @Length(3, 50)
+    @Length(3, 30)
     name: string;
 
     @Column({
@@ -38,15 +41,10 @@ export class User extends BaseEntity {
     role: Roles;
 
     @Column({
-        type: "text"
+        type: "text",
+        default: null
     })
     picture: string;
-
-    @Column({
-        type: "integer",
-        default: 1
-    })
-    service: number;
 
     @CreateDateColumn()
     createdAt: string;
@@ -57,5 +55,32 @@ export class User extends BaseEntity {
     @BeforeInsert()
     async hashPasswordBeforeInsert() {
         this.password = await bcrypt.hash(this.password, 10);
+    }
+
+    public authenticateUser(password: string) {
+        return compareSync(password, this.password);
+    }
+
+    public createToken() {
+        return jwt.sign(
+        {
+            id: this.id,
+        },
+            jwtSecret
+        );
+    }
+
+    public toAuthJSON() {
+        return {
+            id: this.id,
+            token: `JWT ${this.createToken()}`,
+        };
+    }
+
+    public toJSON() {
+        return {
+            id: this.id,
+            name: this.name,
+        };
     }
 }
