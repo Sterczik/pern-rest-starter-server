@@ -1,9 +1,10 @@
 import * as bcrypt from "bcryptjs";
 import { Length } from 'class-validator';
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, BaseEntity, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, BaseEntity, CreateDateColumn, UpdateDateColumn, OneToMany } from "typeorm";
 import { compareSync } from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
-import { jwtSecret } from '../../config/variables';
+import { jwtSecret, jwtExpirationMinutes } from '../../config/variables';
+import { Todo } from './Todo';
 
 export enum Roles {
     user,
@@ -52,6 +53,9 @@ export class User extends BaseEntity {
     @UpdateDateColumn()
     updatedAt: string;
 
+    @OneToMany(type => Todo, todo => todo.user)
+    todos: Todo[];
+
     @BeforeInsert()
     async hashPasswordBeforeInsert() {
         this.password = await bcrypt.hash(this.password, 10);
@@ -62,12 +66,7 @@ export class User extends BaseEntity {
     }
 
     public createToken() {
-        return jwt.sign(
-        {
-            id: this.id,
-        },
-            jwtSecret
-        );
+        return jwt.sign({ id: this.id }, jwtSecret, { expiresIn: Number(jwtExpirationMinutes) * 60 });
     }
 
     public toAuthJSON() {
