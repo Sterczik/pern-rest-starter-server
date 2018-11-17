@@ -5,10 +5,12 @@ import { createConnection } from "typeorm";
 import app from './config/express';
 import { env, port } from './config/variables';
 
-createConnection()
+export const startServer = () => {
+  createConnection()
   .then(() => {
-    console.log('Database connected!');
+    app.listen(port, () => console.info(`Server started: Port ${port}, Env ${env} 🍺`));
   })
   .catch(err => console.log(err));
+}
 
-app.listen(port, () => console.info(`Server started: Port ${port}, Env ${env} 🍺`));
+startServer();

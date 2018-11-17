@@ -61,6 +61,8 @@ export class User extends BaseEntity {
         this.password = await bcrypt.hash(this.password, 10);
     }
 
+    // Methods
+
     public authenticateUser(password: string) {
         return compareSync(password, this.password);
     }
