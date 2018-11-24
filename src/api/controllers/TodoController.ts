@@ -1,3 +1,4 @@
+import { validate } from 'class-validator';
 import { Request, Response } from 'express';
 import * as HTTPStatus from 'http-status';
 import { getRepository } from 'typeorm';
@@ -23,12 +24,15 @@ export async function getOne(req: Request, res: Response) {
 
   if (todo) {
     if (todo.user.id === userId) {
-      res.status(HTTPStatus.OK).json(todo);
+      return res.status(HTTPStatus.OK).json({
+        ...todo,
+        user: todo.user.id
+      });
     } else {
-      res.status(HTTPStatus.UNAUTHORIZED).json(HTTPStatus.UNAUTHORIZED);
+      return res.status(HTTPStatus.UNAUTHORIZED).json(HTTPStatus.UNAUTHORIZED);
     }
   } else {
-    res.status(HTTPStatus.NOT_FOUND).json(HTTPStatus.NOT_FOUND);
+    return res.status(HTTPStatus.NOT_FOUND).json(HTTPStatus.NOT_FOUND);
   }
 }
 
@@ -39,9 +43,14 @@ export async function create(req: Request, res: Response) {
     ...req.body,
     user: userId
   });
+
+  const errors = await validate("todoValidationSchema", todo);
+  if (errors.length > 0) {
+    return res.status(HTTPStatus.BAD_REQUEST).json(errors);
+  }
   
   await getRepository(Todo).save(todo);
-  res.status(HTTPStatus.OK).json(todo);
+  return res.status(HTTPStatus.OK).json(todo);
 }
 
 export async function edit(req: Request, res: Response) {

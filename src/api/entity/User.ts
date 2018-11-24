@@ -1,10 +1,15 @@
 import * as bcrypt from "bcryptjs";
-import { Length } from 'class-validator';
+import { registerSchema } from 'class-validator';
 import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, BaseEntity, CreateDateColumn, UpdateDateColumn, OneToMany } from "typeorm";
 import { compareSync } from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { jwtSecret, jwtExpirationMinutes } from '../../config/variables';
 import { Todo } from './Todo';
+import { RegisterValidationSchema } from '../validations/User/RegisterSchema';
+import { LoginValidationSchema } from '../validations/User/LoginSchema';
+
+registerSchema(RegisterValidationSchema);
+registerSchema(LoginValidationSchema);
 
 export enum Roles {
     user,
@@ -27,13 +32,11 @@ export class User extends BaseEntity {
     @Column({
         type: "varchar"
     })
-    @Length(6, 30)
     password: string;
 
     @Column({
         type: "varchar"
     })
-    @Length(3, 30)
     name: string;
 
     @Column({
@@ -60,8 +63,6 @@ export class User extends BaseEntity {
     async hashPasswordBeforeInsert() {
         this.password = await bcrypt.hash(this.password, 10);
     }
-
-    // Methods
 
     public authenticateUser(password: string) {
         return compareSync(password, this.password);
