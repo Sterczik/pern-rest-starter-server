@@ -10,8 +10,7 @@ export async function getAll(req: Request, res: Response) {
   const todos = await getRepository(Todo).find({
     where: { user: userId }
   });
-
-  res.status(HTTPStatus.OK).json(todos);
+  return res.status(HTTPStatus.OK).json(todos);
 }
 
 export async function getOne(req: Request, res: Response) {
@@ -28,12 +27,10 @@ export async function getOne(req: Request, res: Response) {
         ...todo,
         user: todo.user.id
       });
-    } else {
-      return res.status(HTTPStatus.UNAUTHORIZED).json(HTTPStatus.UNAUTHORIZED);
     }
-  } else {
-    return res.status(HTTPStatus.NOT_FOUND).json(HTTPStatus.NOT_FOUND);
+    return res.status(HTTPStatus.UNAUTHORIZED).json(HTTPStatus.UNAUTHORIZED);
   }
+  return res.status(HTTPStatus.NOT_FOUND).json(HTTPStatus.NOT_FOUND);
 }
 
 export async function create(req: Request, res: Response) {
@@ -65,13 +62,11 @@ export async function edit(req: Request, res: Response) {
     if (todo.user.id === userId) {
       todo.name = req.body.name;
       await getRepository(Todo).save(todo);
-      res.status(HTTPStatus.OK).json(todo);
-    } else {
-      res.status(HTTPStatus.UNAUTHORIZED).json(HTTPStatus.UNAUTHORIZED);
-    }
-  } else {
-    res.status(HTTPStatus.NOT_FOUND).json(HTTPStatus.NOT_FOUND);
-  }
+      return res.status(HTTPStatus.OK).json(todo);
+    } 
+    return res.status(HTTPStatus.UNAUTHORIZED).json(HTTPStatus.UNAUTHORIZED);
+  } 
+  return res.status(HTTPStatus.NOT_FOUND).json(HTTPStatus.NOT_FOUND);
 }
 
 export async function remove(req: Request, res: Response) {
@@ -85,11 +80,28 @@ export async function remove(req: Request, res: Response) {
   if (todo) {
     if (todo.user.id === userId) {
       await getRepository(Todo).delete(req.params.id);
-      res.status(HTTPStatus.OK).json(HTTPStatus.OK);
-    } else {
-      res.status(HTTPStatus.UNAUTHORIZED).json(HTTPStatus.UNAUTHORIZED);
-    }
-  } else {
-    res.status(HTTPStatus.NOT_FOUND).json(HTTPStatus.NOT_FOUND);
-  }
+      return res.status(HTTPStatus.OK).json({ message: "You successfully removed this Todo." });
+    } 
+    return res.status(HTTPStatus.UNAUTHORIZED).json({ message: "You have no permissions to manage this Todo." });
+  } 
+  return res.status(HTTPStatus.NOT_FOUND).json({ message: "Not found." });
+}
+
+export async function switchStatus(req: Request, res: Response) {
+  const userId = req.user;
+
+  const todo = await getRepository(Todo).findOne({
+    relations: ["user"],
+    where: { id: req.params.id }
+  });
+
+  if (todo) {
+    if (todo.user.id === userId) {
+      todo.isDone = !todo.isDone;
+      await getRepository(Todo).save(todo);
+      return res.status(HTTPStatus.OK).json(HTTPStatus.OK);
+    } 
+    return res.status(HTTPStatus.UNAUTHORIZED).json(HTTPStatus.UNAUTHORIZED);
+  } 
+  return res.status(HTTPStatus.NOT_FOUND).json(HTTPStatus.NOT_FOUND);
 }

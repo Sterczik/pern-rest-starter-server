@@ -41,11 +41,6 @@ passport.use(new JWTStrategy(
   jwtOpts, 
   async (payload, done) => {
     try {
-      // const user = await getRepository(User).findOne({ where: { id: payload.id } });
-
-      // if (!user) {
-      //   return done(null, false);
-      // }
       if (!payload.id) {
         return done(null, false);
       }

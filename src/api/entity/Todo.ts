@@ -14,6 +14,9 @@ export class Todo extends BaseEntity {
   @Column("varchar", { length: 255 })
   name: string;
 
+  @Column({ type: "bool", default: false })
+  isDone: boolean;
+
   @ManyToOne(type => User, user => user.todos)
   user: User;
 }
