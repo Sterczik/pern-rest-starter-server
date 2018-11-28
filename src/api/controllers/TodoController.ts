@@ -80,7 +80,7 @@ export async function remove(req: Request, res: Response) {
   if (todo) {
     if (todo.user.id === userId) {
       await getRepository(Todo).delete(req.params.id);
-      return res.status(HTTPStatus.OK).json({ message: "You successfully removed this Todo." });
+      return res.status(HTTPStatus.OK).json(todo);
     } 
     return res.status(HTTPStatus.UNAUTHORIZED).json({ message: "You have no permissions to manage this Todo." });
   } 
@@ -99,9 +99,9 @@ export async function switchStatus(req: Request, res: Response) {
     if (todo.user.id === userId) {
       todo.isDone = !todo.isDone;
       await getRepository(Todo).save(todo);
-      return res.status(HTTPStatus.OK).json(HTTPStatus.OK);
+      return res.status(HTTPStatus.OK).json(todo);
     } 
-    return res.status(HTTPStatus.UNAUTHORIZED).json(HTTPStatus.UNAUTHORIZED);
+    return res.status(HTTPStatus.UNAUTHORIZED).json({ message: "You have no permissions to manage this Todo." });
   } 
-  return res.status(HTTPStatus.NOT_FOUND).json(HTTPStatus.NOT_FOUND);
+  return res.status(HTTPStatus.NOT_FOUND).json({ message: "Not found." });
 }
