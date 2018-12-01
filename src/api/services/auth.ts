@@ -25,6 +25,10 @@ passport.use(new LocalStrategy(
         return done(null, false);
       }
 
+      if (!user.confirmed) {
+        throw new Error('Please confirm your email to login');
+      }
+
       return done(null, user);
     } catch (e) {
       return done(e, false);

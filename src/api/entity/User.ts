@@ -45,6 +45,12 @@ export class User extends BaseEntity {
     role: Roles;
 
     @Column({
+        type: "bool",
+        default: false
+    })
+    confirmed: boolean;
+
+    @Column({
         type: "text",
         default: null
     })
