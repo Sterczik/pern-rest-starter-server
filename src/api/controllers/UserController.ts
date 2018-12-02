@@ -81,3 +81,29 @@ export async function confirmRegister(req: Request, res: Response) {
 
   return res.redirect('http://localhost:8080/login');
 }
+
+export async function changePassword(req: Request, res: Response) {
+  try {
+    const userId = req.user;
+    const body = filteredBody(req.body, ['newPassword']);
+    const errors = await validate("changePasswordValidationSchema", body);
+
+    const user = await getRepository(User).findOne({
+      where: { id: userId }
+    });
+
+    if (!user.authenticateUser(req.body.oldPassword)) {
+      return res.status(HTTPStatus.BAD_REQUEST).json({ error: "You passed wrong old password." });
+    }
+
+    if (errors.length > 0) {
+      return res.status(HTTPStatus.BAD_REQUEST).json(errors);
+    }
+
+    await user.changePassword(body.newPassword);
+    await getRepository(User).save(user);
+    return res.status(HTTPStatus.OK).json(user);
+  } catch (e) {
+    return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({ error: 'Something went wrong!' });
+  }
+}

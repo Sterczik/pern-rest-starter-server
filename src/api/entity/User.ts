@@ -70,6 +70,10 @@ export class User extends BaseEntity {
         this.password = await bcrypt.hash(this.password, 10);
     }
 
+    async changePassword(newPassword: string) {
+        this.password = await bcrypt.hash(newPassword, 10);
+    }
+
     public authenticateUser(password: string) {
         return compareSync(password, this.password);
     }
