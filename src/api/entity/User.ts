@@ -7,9 +7,13 @@ import { jwtSecret, jwtExpirationMinutes } from '../../config/variables';
 import { Todo } from './Todo';
 import { RegisterValidationSchema } from '../validations/User/RegisterSchema';
 import { LoginValidationSchema } from '../validations/User/LoginSchema';
+import { ForgotPasswordValidationSchema } from '../validations/User/ForgotPasswordSchema';
+import { ResetPasswordValidationSchema } from '../validations/User/ResetPasswordSchema';
 
 registerSchema(RegisterValidationSchema);
 registerSchema(LoginValidationSchema);
+registerSchema(ForgotPasswordValidationSchema);
+registerSchema(ResetPasswordValidationSchema);
 
 export enum Roles {
     user,
@@ -55,6 +59,12 @@ export class User extends BaseEntity {
         default: null
     })
     picture: string;
+
+    @Column({
+        type: "varchar",
+        default: null
+    })
+    resetPasswordToken: string;
 
     @CreateDateColumn()
     createdAt: string;

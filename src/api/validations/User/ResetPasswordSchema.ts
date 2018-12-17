@@ -1,7 +1,7 @@
 import { ValidationSchema } from 'class-validator';
 
-export let ChangePasswordValidationSchema: ValidationSchema = {
-    name: "changePasswordValidationSchema",
+export let ResetPasswordValidationSchema: ValidationSchema = {
+    name: "resetPasswordValidationSchema",
     properties : {
         newPassword: [
             {

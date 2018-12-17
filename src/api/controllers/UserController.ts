@@ -1,3 +1,4 @@
+import * as crypto from 'crypto';
 import { validate } from 'class-validator';
 import { Request, Response, NextFunction } from 'express';
 import * as HTTPStatus from 'http-status';
@@ -40,7 +41,7 @@ export async function create(req: Request, res: Response, next: NextFunction) {
         transporter.sendMail({
           to: user.email,
           subject: 'Confirm Email',
-          html: `Please click this email to confirm your email: <a href="${url}">${url}</a>`
+          html: `Please click this link to confirm your email: <a href="${url}">${url}</a>`
         })
       }
     )
@@ -103,6 +104,66 @@ export async function changePassword(req: Request, res: Response) {
     await user.changePassword(body.newPassword);
     await getRepository(User).save(user);
     return res.status(HTTPStatus.OK).json(user);
+  } catch (e) {
+    return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({ error: 'Something went wrong!' });
+  }
+}
+
+export async function forgotPassword(req: Request, res: Response) {
+  try {
+    const body = filteredBody(req.body, ['email']);
+    const errors = await validate("forgotPasswordValidationSchema", body);
+
+    if (errors.length > 0) {
+      return res.status(HTTPStatus.BAD_REQUEST).json(errors);
+    }
+
+    const user = await getRepository(User).findOne({
+      where: { email: req.body.email }
+    });
+
+    const token = crypto.randomBytes(20).toString('hex');
+
+    user.resetPasswordToken = token;
+    await getRepository(User).save(user);
+
+    const url = `http://localhost:8080/reset-password?token=${token}`;
+
+    transporter.sendMail({
+      to: user.email,
+      subject: 'Link to Reset Password',
+      html: `Please click this link to reset your password: <a href="${url}">${url}</a>`
+    }, (err, response) => {
+      if (err) {
+        return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({ error: err });
+      }
+      return res.status(HTTPStatus.OK).json({ response });
+    })
+
+    return res.status(HTTPStatus.OK).json();
+  } catch (e) {
+    return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({ error: 'Something went wrong!' });
+  }
+}
+
+export async function resetPassword(req: Request, res: Response) {
+  try {
+    const body = filteredBody(req.body, ['newPassword']);
+    const errors = await validate("resetPasswordValidationSchema", body);
+
+    if (errors.length > 0) {
+      return res.status(HTTPStatus.BAD_REQUEST).json(errors);
+    }
+
+    const userToReset = await getRepository(User).findOne({
+      where: { resetPasswordToken: req.query.token }
+    });
+    userToReset.resetPasswordToken = null;
+
+    await userToReset.changePassword(req.body.newPassword);
+    await getRepository(User).save(userToReset);
+
+    return res.status(HTTPStatus.OK).json({ message: 'You successfully changed password!' });
   } catch (e) {
     return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({ error: 'Something went wrong!' });
   }
