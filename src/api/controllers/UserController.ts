@@ -1,30 +1,28 @@
 import * as crypto from 'crypto';
-import { validate } from 'class-validator';
+import { validate, Validator } from 'class-validator';
 import { Request, Response, NextFunction } from 'express';
 import * as HTTPStatus from 'http-status';
 import { getRepository } from 'typeorm';
 import * as jwt from 'jsonwebtoken';
-import * as nodemailer from 'nodemailer';
+import transporter from '../services/email';
 import { User } from '../entity/User';
 import { filteredBody } from '../utils/filterBody';
-import { jwtSecret, gmailUser, gmailPassword } from '../../config/variables';
-
-const transporter = nodemailer.createTransport({
-  service: 'Gmail',
-  auth: {
-    user: gmailUser,
-    pass: gmailPassword
-  }
-})
+import { jwtSecret } from '../../config/variables';
 
 export async function create(req: Request, res: Response, next: NextFunction) {
-  const body = filteredBody(req.body, ['email', 'name', 'password']);
   try {
-    const user = await getRepository(User).create(body);
-    const errors = await validate("registerValidationSchema", user);
+    const body = filteredBody(req.body, ['email', 'name', 'password']);
+    const errors = await validate("registerValidationSchema", body);
     if (errors.length > 0) {
       return res.status(HTTPStatus.BAD_REQUEST).json(errors);
     }
+    const validator = new Validator();
+    const passwordErrors = await validator.equals(req.body.password, req.body.passwordConfirm);
+    if (!passwordErrors) {
+      return res.status(HTTPStatus.BAD_REQUEST).json({ errors: 'Passwords does not match' });
+    }
+    
+    const user = await getRepository(User).create(body);
     await getRepository(User).save(user);
 
     jwt.sign(
@@ -101,6 +99,12 @@ export async function changePassword(req: Request, res: Response) {
       return res.status(HTTPStatus.BAD_REQUEST).json(errors);
     }
 
+    const validator = new Validator();
+    const passwordErrors = await validator.equals(req.body.newPassword, req.body.newPasswordConfirm);
+    if (!passwordErrors) {
+      return res.status(HTTPStatus.BAD_REQUEST).json({ errors: 'Passwords does not match' });
+    }
+
     await user.changePassword(body.newPassword);
     await getRepository(User).save(user);
     return res.status(HTTPStatus.OK).json(user);
@@ -153,6 +157,12 @@ export async function resetPassword(req: Request, res: Response) {
 
     if (errors.length > 0) {
       return res.status(HTTPStatus.BAD_REQUEST).json(errors);
+    }
+
+    const validator = new Validator();
+    const passwordErrors = await validator.equals(req.body.newPassword, req.body.newPasswordConfirm);
+    if (!passwordErrors) {
+      return res.status(HTTPStatus.BAD_REQUEST).json({ errors: 'Passwords does not match' });
     }
 
     const userToReset = await getRepository(User).findOne({
