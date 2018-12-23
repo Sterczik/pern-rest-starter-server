@@ -23,7 +23,18 @@ export let ResetPasswordValidationSchema: ValidationSchema = {
             {
                 type: "isNotEmpty",
                 constraints: [],
-                message: 'Password is required.'
+                message: 'New password is required.'
+            }
+        ],
+        newPasswordConfirm: [
+            {
+                type: "isString",
+                constraints: []
+            },
+            {
+                type: "isNotEmpty",
+                constraints: [],
+                message: 'Password confirmation is required.'
             }
         ]
     }

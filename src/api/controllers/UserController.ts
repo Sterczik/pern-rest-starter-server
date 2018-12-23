@@ -11,7 +11,7 @@ import { jwtSecret } from '../../config/variables';
 
 export async function create(req: Request, res: Response, next: NextFunction) {
   try {
-    const body = filteredBody(req.body, ['email', 'name', 'password']);
+    const body = filteredBody(req.body, ['email', 'name', 'password', 'passwordConfirm']);
     const errors = await validate("registerValidationSchema", body);
     if (errors.length > 0) {
       return res.status(HTTPStatus.BAD_REQUEST).json(errors);
@@ -50,22 +50,6 @@ export async function create(req: Request, res: Response, next: NextFunction) {
     return next(e);
   }
 }
-
-export async function login(req: Request, res: Response, next: NextFunction) {
-  res.status(HTTPStatus.OK).json(req.user.toAuthJSON());
-  return next();
-}
-
-export async function loginValidation(req: Request, res: Response, next: NextFunction) {
-  const body = filteredBody(req.body, ['email', 'password']);
-  const errors = await validate("loginValidationSchema", body);
-  
-  if (errors.length > 0) {
-    return res.status(HTTPStatus.BAD_REQUEST).json(errors);
-  }
-  return next();
-}
-
 export async function confirmRegister(req: Request, res: Response) {
   try {
     const token:any = jwt.verify(req.params.token, jwtSecret);
@@ -77,37 +61,53 @@ export async function confirmRegister(req: Request, res: Response) {
   } catch (e) {
     res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json(e);
   }
-
   return res.redirect('http://localhost:8080/login');
+}
+
+export async function login(req: Request, res: Response, next: NextFunction) {
+  res.status(HTTPStatus.OK).json(req.user.toAuthJSON());
+  return next();
+}
+export async function loginValidation(req: Request, res: Response, next: NextFunction) {
+  const body = filteredBody(req.body, ['email', 'password']);
+  const errors = await validate("loginValidationSchema", body);
+  if (errors.length > 0) {
+    return res.status(HTTPStatus.BAD_REQUEST).json(errors);
+  }
+  return next();
 }
 
 export async function changePassword(req: Request, res: Response) {
   try {
     const userId = req.user;
-    const body = filteredBody(req.body, ['newPassword']);
+    const body = filteredBody(req.body, ['oldPassword','newPassword', 'newPasswordConfirm']);
     const errors = await validate("changePasswordValidationSchema", body);
 
     const user = await getRepository(User).findOne({
       where: { id: userId }
     });
 
+    if (errors.length > 0) {
+      return res.status(HTTPStatus.BAD_REQUEST).json(errors);
+    }
     if (!user.authenticateUser(req.body.oldPassword)) {
       return res.status(HTTPStatus.BAD_REQUEST).json({ error: "You passed wrong old password." });
     }
 
-    if (errors.length > 0) {
-      return res.status(HTTPStatus.BAD_REQUEST).json(errors);
-    }
-
     const validator = new Validator();
+
     const passwordErrors = await validator.equals(req.body.newPassword, req.body.newPasswordConfirm);
     if (!passwordErrors) {
       return res.status(HTTPStatus.BAD_REQUEST).json({ errors: 'Passwords does not match' });
     }
+    const samePasswords = await validator.equals(req.body.oldPassword, req.body.newPassword);
+    if (samePasswords) {
+      return res.status(HTTPStatus.BAD_REQUEST).json({ errors: 'New password matches old password' });
+    }
 
     await user.changePassword(body.newPassword);
     await getRepository(User).save(user);
-    return res.status(HTTPStatus.OK).json(user);
+    return res.status(HTTPStatus.OK).json({ message: 'You successfully changed password!' });
   } catch (e) {
     return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({ error: 'Something went wrong!' });
   }
@@ -117,7 +117,6 @@ export async function forgotPassword(req: Request, res: Response) {
   try {
     const body = filteredBody(req.body, ['email']);
     const errors = await validate("forgotPasswordValidationSchema", body);
-
     if (errors.length > 0) {
       return res.status(HTTPStatus.BAD_REQUEST).json(errors);
     }
@@ -141,18 +140,15 @@ export async function forgotPassword(req: Request, res: Response) {
       if (err) {
         return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({ error: err });
       }
-      return res.status(HTTPStatus.OK).json({ response });
-    })
-
-    return res.status(HTTPStatus.OK).json();
+      return res.status(HTTPStatus.OK).json({ message: 'Message is now sent to your email' });
+    });
   } catch (e) {
     return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({ error: 'Something went wrong!' });
   }
 }
-
 export async function resetPassword(req: Request, res: Response) {
   try {
-    const body = filteredBody(req.body, ['newPassword']);
+    const body = filteredBody(req.body, ['newPassword', 'newPasswordConfirm']);
     const errors = await validate("resetPasswordValidationSchema", body);
 
     if (errors.length > 0) {

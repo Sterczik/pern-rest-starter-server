@@ -7,11 +7,13 @@ import { jwtSecret, jwtExpirationMinutes } from '../../config/variables';
 import { Todo } from './Todo';
 import { RegisterValidationSchema } from '../validations/User/RegisterSchema';
 import { LoginValidationSchema } from '../validations/User/LoginSchema';
+import { ChangePasswordValidationSchema } from '../validations/User/ChangePasswordSchema';
 import { ForgotPasswordValidationSchema } from '../validations/User/ForgotPasswordSchema';
 import { ResetPasswordValidationSchema } from '../validations/User/ResetPasswordSchema';
 
 registerSchema(RegisterValidationSchema);
 registerSchema(LoginValidationSchema);
+registerSchema(ChangePasswordValidationSchema);
 registerSchema(ForgotPasswordValidationSchema);
 registerSchema(ResetPasswordValidationSchema);
 

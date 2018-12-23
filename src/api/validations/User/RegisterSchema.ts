@@ -38,6 +38,17 @@ export let RegisterValidationSchema: ValidationSchema = {
                 message: 'Password is required.'
             }
         ],
+        passwordConfirm: [
+            {
+                type: "isString",
+                constraints: []
+            },
+            {
+                type: "isNotEmpty",
+                constraints: [],
+                message: 'Password is required.'
+            }
+        ],
         name: [
             {
                 type: "minLength",
