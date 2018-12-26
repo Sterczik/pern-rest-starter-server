@@ -62,8 +62,11 @@ export async function edit(req: Request, res: Response) {
     if (todo.user.id === userId) {
       todo.name = req.body.name;
       await getRepository(Todo).save(todo);
-      return res.status(HTTPStatus.OK).json(todo);
-    } 
+      return res.status(HTTPStatus.OK).json({
+        ...todo,
+        user: todo.user.id
+      });
+    }
     return res.status(HTTPStatus.UNAUTHORIZED).json(HTTPStatus.UNAUTHORIZED);
   } 
   return res.status(HTTPStatus.NOT_FOUND).json(HTTPStatus.NOT_FOUND);
@@ -80,7 +83,10 @@ export async function remove(req: Request, res: Response) {
   if (todo) {
     if (todo.user.id === userId) {
       await getRepository(Todo).delete(req.params.id);
-      return res.status(HTTPStatus.OK).json(todo);
+      return res.status(HTTPStatus.OK).json({
+        ...todo,
+        user: todo.user.id
+      });
     } 
     return res.status(HTTPStatus.UNAUTHORIZED).json({ message: "You have no permissions to manage this Todo." });
   } 
@@ -99,7 +105,10 @@ export async function switchStatus(req: Request, res: Response) {
     if (todo.user.id === userId) {
       todo.isDone = !todo.isDone;
       await getRepository(Todo).save(todo);
-      return res.status(HTTPStatus.OK).json(todo);
+      return res.status(HTTPStatus.OK).json({
+        ...todo,
+        user: todo.user.id
+      });
     } 
     return res.status(HTTPStatus.UNAUTHORIZED).json({ message: "You have no permissions to manage this Todo." });
   } 
