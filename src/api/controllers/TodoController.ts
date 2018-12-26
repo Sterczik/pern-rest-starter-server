@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import * as HTTPStatus from 'http-status';
 import { getRepository } from 'typeorm';
 import { Todo } from '../entity/Todo';
+import { filteredBody } from '../utils/filterBody';
 
 export async function getAll(req: Request, res: Response) {
   const userId = req.user;
@@ -36,22 +37,29 @@ export async function getOne(req: Request, res: Response) {
 export async function create(req: Request, res: Response) {
   const userId = req.user;
 
+  const body = filteredBody(req.body, ['name']);
+  const errors = await validate("todoValidationSchema", body);
+  if (errors.length > 0) {
+    return res.status(HTTPStatus.BAD_REQUEST).json(errors);
+  }
+
   const todo = await getRepository(Todo).create({
     ...req.body,
     user: userId
   });
 
-  const errors = await validate("todoValidationSchema", todo);
-  if (errors.length > 0) {
-    return res.status(HTTPStatus.BAD_REQUEST).json(errors);
-  }
-  
   await getRepository(Todo).save(todo);
   return res.status(HTTPStatus.OK).json(todo);
 }
 
 export async function edit(req: Request, res: Response) {
   const userId = req.user;
+
+  const body = filteredBody(req.body, ['name']);
+  const errors = await validate("todoValidationSchema", body);
+  if (errors.length > 0) {
+    return res.status(HTTPStatus.BAD_REQUEST).json(errors);
+  }
 
   const todo = await getRepository(Todo).findOne({
     relations: ["user"],
