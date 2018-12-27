@@ -7,8 +7,7 @@
   "author": "sterczik <sterczewskik@gmail.com>",
   "license": "MIT",
   "engines": {
-    "node": ">=8",
-    "yarn": "1.12.3"
+    "node": ">=8"
   },
   "scripts": {
     "dev": "nodemon --exec ts-node ./src/index.ts",
