@@ -11,9 +11,13 @@
     "yarn": "*"
   },
   "scripts": {
-    "start": "nodemon --exec ts-node ./src/index.ts",
+    "dev": "nodemon --exec ts-node ./src/index.ts",
     "test": "jest",
-    "lint": "tslint --project ./tsconfig.json"
+    "lint": "tslint --project ./tsconfig.json",
+    "build-ts": "tsc",
+    "postinstall": "npm run build-ts",
+    "start": "npm run serve",
+    "serve": "node dist/server.js"
   },
   "dependencies": {
     "axios": "^0.18.0",
