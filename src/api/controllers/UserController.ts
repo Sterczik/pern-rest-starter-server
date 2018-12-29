@@ -7,7 +7,7 @@ import * as jwt from 'jsonwebtoken';
 import transporter from '../services/email';
 import { User } from '../entity/User';
 import { filteredBody } from '../utils/filterBody';
-import { jwtSecret } from '../../config/variables';
+import { jwtSecret, serverUrl, clientUrl } from '../../config/variables';
 
 export async function create(req: Request, res: Response, next: NextFunction) {
   try {
@@ -34,7 +34,7 @@ export async function create(req: Request, res: Response, next: NextFunction) {
         expiresIn: '1d'
       },
       (err, emailToken) => {
-        const url = `http://localhost:3000/api/users/confirmation/${emailToken}`;
+        const url = `${serverUrl}/api/users/confirmation/${emailToken}`;
 
         transporter.sendMail({
           to: user.email,
@@ -61,7 +61,7 @@ export async function confirmRegister(req: Request, res: Response) {
   } catch (e) {
     res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json(e);
   }
-  return res.redirect('http://localhost:8080/login');
+  return res.redirect(`${clientUrl}/login`);
 }
 
 export async function login(req: Request, res: Response, next: NextFunction) {
@@ -130,7 +130,7 @@ export async function forgotPassword(req: Request, res: Response) {
     user.resetPasswordToken = token;
     await getRepository(User).save(user);
 
-    const url = `http://localhost:8080/reset-password?token=${token}`;
+    const url = `${clientUrl}/reset-password?token=${token}`;
 
     transporter.sendMail({
       to: user.email,
