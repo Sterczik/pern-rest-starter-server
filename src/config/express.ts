@@ -6,6 +6,7 @@ import * as cors from 'cors';
 import * as helmet from 'helmet';
 import * as passport from 'passport';
 import routes from '../api/routes';
+import { clientUrl } from './variables';
 
 const app = express();
 
@@ -20,7 +21,9 @@ app.use(methodOverride());
 
 app.use(helmet());
 
-app.use(cors());
+app.use(cors({
+  origin: clientUrl
+}));
 
 app.use('/api', routes);
 
